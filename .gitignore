@@ -1,0 +1,12 @@
+slides/
+*.out
+*.out.*
+hetero-book.pdf
+myths.pdf
+
+*.fdb_latexmk
+*.aux
+*.fls
+*.log
+*/main.pdf
+
