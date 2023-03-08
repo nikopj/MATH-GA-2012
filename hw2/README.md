@@ -19,8 +19,15 @@ Bugs in both programs were found and confirmed to be fixed using `valgrind
 
 ## Optimizing matrix-matrix multiplication
 - comment on column major storage and nested-loop ordering
-A naive implementation of matrix matrix mulitplication (MMM) is as follows
-The matrices are stored in column-major format. To maximize our use of spatial
+A naive implementation of matrix matrix mulitplication (MMM) by copying the MMM as inner-product formula $C_{ij} = \sum_k A_{ik}B_{kj}$,
+```
+for(i=0; i<m; i++)
+    for(j=0; j<n; j++)
+        for(k=0; k<m; k++)
+            C[i,j] += A[i,k]*B[k,j];
+```
+For matrices stored in column-major format, this implementation does not take into account spatial locality well.
+To do so, we want to decrease our frequency of accessing different columns (changes in `j`) so that we have more cache-hits when a cache line is copied over. Thus, it's best to place `j` as the outer-loop (2 col read per it), `k` as the middle (1 col read per it), and `i` as the inner loop as it naturally follows the memory storage order, i.e.,  
 locality (and hence cache-hits)
 - baseline
 - tiling version BS=16, 32, 64, 128
