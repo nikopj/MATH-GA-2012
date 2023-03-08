@@ -125,10 +125,10 @@ double inp_u4_2(long N, double *a, double *b)
 int main(int argc, char** argv) 
 {
     Timer t;
-    long NREPEATS = 200;
-    long NINC = 100000;
-    long NFIRST = 1000;
-    long NLAST = NINC*50 + NFIRST;
+    long NREPEATS = 500;
+    long NINC = 32768;
+    long NFIRST = 4096;
+    long NLAST = NINC*40 + NFIRST;
 
     srand48((long) time(NULL));
 
