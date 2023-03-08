@@ -5,7 +5,7 @@
 #include <omp.h> 
 #include "utils.h"
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 96
 
 // Note: matrices are stored in column major order; i.e. the array elements in
 // the (m x n) matrix C are stored in the sequence: {C_00, C_10, ..., C_m0,
@@ -14,6 +14,66 @@ double* MMult00(long m, long n, long k, double *a, double *b, double *c) {
   for (long j = 0; j < n; j++) {
     for (long p = 0; p < k; p++) {
       for (long i = 0; i < m; i++) {
+        double A_ip = a[i+p*m];
+        double B_pj = b[p+j*k];
+        double C_ij = c[i+j*m];
+        C_ij = C_ij + A_ip * B_pj;
+        c[i+j*m] = C_ij;
+      }
+    }
+  }
+  return c;
+}
+
+double* MMult00ijk(long m, long n, long k, double *a, double *b, double *c) {
+      for (long i = 0; i < m; i++) {
+  for (long j = 0; j < n; j++) {
+    for (long p = 0; p < k; p++) {
+        double A_ip = a[i+p*m];
+        double B_pj = b[p+j*k];
+        double C_ij = c[i+j*m];
+        C_ij = C_ij + A_ip * B_pj;
+        c[i+j*m] = C_ij;
+      }
+    }
+  }
+  return c;
+}
+
+double* MMult00kij(long m, long n, long k, double *a, double *b, double *c) {
+    for (long p = 0; p < k; p++) {
+      for (long i = 0; i < m; i++) {
+  for (long j = 0; j < n; j++) {
+        double A_ip = a[i+p*m];
+        double B_pj = b[p+j*k];
+        double C_ij = c[i+j*m];
+        C_ij = C_ij + A_ip * B_pj;
+        c[i+j*m] = C_ij;
+      }
+    }
+  }
+  return c;
+}
+
+double* MMult00jik(long m, long n, long k, double *a, double *b, double *c) {
+  for (long j = 0; j < n; j++) {
+      for (long i = 0; i < m; i++) {
+    for (long p = 0; p < k; p++) {
+        double A_ip = a[i+p*m];
+        double B_pj = b[p+j*k];
+        double C_ij = c[i+j*m];
+        C_ij = C_ij + A_ip * B_pj;
+        c[i+j*m] = C_ij;
+      }
+    }
+  }
+  return c;
+}
+
+double* MMult00ikj(long m, long n, long k, double *a, double *b, double *c) {
+      for (long i = 0; i < m; i++) {
+    for (long p = 0; p < k; p++) {
+  for (long j = 0; j < n; j++) {
         double A_ip = a[i+p*m];
         double B_pj = b[p+j*k];
         double C_ij = c[i+j*m];
@@ -96,6 +156,7 @@ double vec_max_error(long N, double *a, double *b)
 int main(int argc, char** argv) {
   Timer tt;
   double t00, t01, t10, t11;
+  double tijk, tkij, tjik, tikj;
   const long PFIRST = BLOCK_SIZE;
   const long PLAST = 2000;
   const long PINC = std::max(50/BLOCK_SIZE,1) * BLOCK_SIZE; // multiple of BLOCK_SIZE
@@ -119,39 +180,78 @@ int main(int argc, char** argv) {
     for (long i = 0; i < m*k; i++) a[i] = drand48() - 0.5;
     for (long i = 0; i < k*n; i++) b[i] = drand48() - 0.5;
 
+    // Compute reference solution (JKI)
+    for(long i=0; i<m*n; i++) c_ref[i] = 0.0;
     tt.tic();
-    for (long rep = 0; rep < NREPEATS; rep++) { // Compute reference solution
-      for(long i=0; i<m*n; i++) c_ref[i] = 0.0;
+    for (long rep = 0; rep < NREPEATS; rep++) {
       c_ref = MMult00(m, n, k, a, b, c_ref);
     }
     t00 = tt.toc();
 
+    // // Compute reference solution (IJK)
+    // for(long i=0; i<m*n; i++) c[i] = 0.0;
+    // tt.tic();
+    // for (long rep = 0; rep < NREPEATS; rep++) { 
+    //   c = MMult00ijk(m, n, k, a, b, c);
+    // }
+    // tijk = tt.toc();
+    // max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
+    //
+    // // Compute reference solution (KIJ)
+    // for(long i=0; i<m*n; i++) c[i] = 0.0;
+    // tt.tic();
+    // for (long rep = 0; rep < NREPEATS; rep++) { 
+    //   c = MMult00kij(m, n, k, a, b, c);
+    // }
+    // tkij = tt.toc();
+    // max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
+    //
+    // // Compute reference solution (JIK)
+    // for(long i=0; i<m*n; i++) c[i] = 0.0;
+    // tt.tic();
+    // for (long rep = 0; rep < NREPEATS; rep++) { 
+    //   c = MMult00jik(m, n, k, a, b, c);
+    // }
+    // tjik = tt.toc();
+    // max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
+    //
+    // // Compute reference solution (IKJ)
+    // for(long i=0; i<m*n; i++) c[i] = 0.0;
+    // tt.tic();
+    // for (long rep = 0; rep < NREPEATS; rep++) { 
+    //   c = MMult00ikj(m, n, k, a, b, c);
+    // }
+    // tikj = tt.toc();
+    // max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
+
+    for(long i=0; i<m*n; i++) c[i] = 0.0;
     tt.tic();
-    for (long rep = 0; rep < NREPEATS; rep++) { 
-      for(long i=0; i<m*n; i++) c[i] = 0.0;
+    for (long rep = 0; rep < NREPEATS; rep++) {
       c = MMult01(m, n, k, a, b, c);
     }
     t01 = tt.toc();
     max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
 
+    for (long i = 0; i < m*n; i++) c[i] = 0.0;
     tt.tic();
-    for (long rep = 0; rep < NREPEATS; rep++) { 
-      for (long i = 0; i < m*n; i++) c[i] = 0.0;
+    for (long rep = 0; rep < NREPEATS; rep++) {
       c = MMult10(m, n, k, a, b, c);
     }
     t10 = tt.toc();
     max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
 
+    for (long i = 0; i < m*n; i++) c[i] = 0.0;
     tt.tic();
-    for (long rep = 0; rep < NREPEATS; rep++) { 
-      for (long i = 0; i < m*n; i++) c[i] = 0.0;
+    for (long rep = 0; rep < NREPEATS; rep++) {
       c = MMult11(m, n, k, a, b, c);
     }
     t11 = tt.toc();
     max_err = fmax(max_err, vec_max_error(m*n, c, c_ref));
 
-    printf("%10ld %3.5f %5f %5f %5f %5f %5f %5f %5f %.3e\n", 
-        p, ops/t00, ops/t01, ops/t10, ops/t11, 
+    // printf("%8ld %3.5f %3.5f %3.5f %3.5f %3.5f %.3e\n", 
+    //     p, tijk, tkij, t00, tjik, tikj, max_err);
+    printf("%10ld %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %.3e\n",
+        p, ops/t00, ops/t01, ops/t10, ops/t11,
         mems/t00, mems/t01, mems/t10, mems/t11, max_err);
 
     aligned_free(a);

@@ -1,0 +1,88 @@
+\documentclass[tikz, border=10pt, width=8cm, height=4cm]{standalone}
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+% Define custom color cycle
+\definecolor{color1}{RGB}{166,206,227}
+\definecolor{color2}{RGB}{31,120,180}
+\definecolor{color3}{RGB}{178,223,138}
+\definecolor{color4}{RGB}{51,160,44}
+\definecolor{color5}{RGB}{251,154,153}
+\definecolor{color6}{RGB}{227,26,28}
+\definecolor{color7}{RGB}{253,191,111}
+\definecolor{color8}{RGB}{255,127,0}
+\definecolor{color9}{RGB}{202,178,214}
+\definecolor{color10}{RGB}{106,61,154}
+\pgfplotscreateplotcyclelist{customcolors}{
+  color1,mark=*,mark options={fill=color1!80!black},mark repeat=1\\
+  color2,mark=square*,mark options={fill=color2!80!black},mark repeat=1\\
+  color3,mark=diamond*,mark options={fill=color3!80!black},mark repeat=1\\
+  color4,mark=triangle*,mark options={fill=color4!80!black},mark repeat=1\\
+  color5,mark=x,mark options={color=color5!80!black},mark repeat=1\\
+  color6,mark=otimes*,mark options={fill=color6!80!black},mark repeat=1\\
+  color7,mark=star,mark options={fill=color7!80!black},mark repeat=1\\
+  color8,mark=pentagon*,mark options={fill=color8!80!black},mark repeat=1\\
+  color9,mark=*,mark options={fill=color9!80!black},mark repeat=1\\
+  color10,mark=square*,mark options={fill=color10!80!black},mark repeat=1\\
+}
+
+\begin{document}
+
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel={Dimension},
+      title={FLOP rate (GFlops/s)},
+      %legend entries={baseline, multi-threaded, tiled-16, tiled-16 + multi-threaded},
+      %legend pos=north west,
+      xtick distance=400,
+      minor x tick num=1,
+      grid=major,
+      width=12cm,
+      height=8cm,
+      cycle list name=customcolors,
+    ]
+    \addplot table[x=Dim, y=F00, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=F01, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=F10, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=F11, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=F10, col sep=space] {../logs/log_mm_32.txt};
+    \addplot table[x=Dim, y=F11, col sep=space] {../logs/log_mm_32.txt};
+    \addplot table[x=Dim, y=F10, col sep=space] {../logs/log_mm_64.txt};
+    \addplot table[x=Dim, y=F11, col sep=space] {../logs/log_mm_64.txt};
+    \addplot table[x=Dim, y=F10, col sep=space] {../logs/log_mm_128.txt};
+    \addplot table[x=Dim, y=F11, col sep=space] {../logs/log_mm_128.txt};
+  \end{axis}
+\end{tikzpicture}
+%
+\begin{tikzpicture}
+  \begin{axis}[
+      xlabel={Dimension},
+      title={Bandwidth (GB/s)},
+      legend entries={baseline, multi-threaded, 
+        tiled-16, tiled-16 + multi-threaded,
+        tiled-32, tiled-32 + multi-threaded, 
+        tiled-64, tiled-64 + multi-threaded, 
+        tiled-128, tiled-128 + multi-threaded, },
+      xtick distance=400,
+      minor x tick num=1,
+      legend pos=outer north east,
+      legend cell align=left,
+      grid=major,
+      width=12cm,
+      height=8cm,
+      cycle list name=customcolors,
+    ]
+    \addplot table[x=Dim, y=BW00, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=BW01, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=BW10, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=BW11, col sep=space] {../logs/log_mm_16.txt};
+    \addplot table[x=Dim, y=BW10, col sep=space] {../logs/log_mm_32.txt};
+    \addplot table[x=Dim, y=BW11, col sep=space] {../logs/log_mm_32.txt};
+    \addplot table[x=Dim, y=BW10, col sep=space] {../logs/log_mm_64.txt};
+    \addplot table[x=Dim, y=BW11, col sep=space] {../logs/log_mm_64.txt};
+    \addplot table[x=Dim, y=BW10, col sep=space] {../logs/log_mm_128.txt};
+    \addplot table[x=Dim, y=BW11, col sep=space] {../logs/log_mm_128.txt};
+  \end{axis}
+\end{tikzpicture}
+
+\end{document}
