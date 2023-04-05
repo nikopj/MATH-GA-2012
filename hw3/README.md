@@ -152,11 +152,38 @@ positive effect. What's also interesting is that at no point is `threads=1`
 timing equal to the serial timing. I have found no explanation for this
 phenomenon.
 
-For reference, the above table is achieved by the bash script,
-```bash
-for i={1..8}; OMP_NUM_THREADS=$i ./scan-omp; done
-```
+For reference, the above table is achieved by the script `hw3/scan_tablemake.sh`,
 
 ## 3. OpenMP version of 2D Jacobi/Gauss-Seidel smoothing
+in progress...
 
 ## 4. Preview for final project summary on next assignment
+I am working with Lakshay Garg to implement the
+[flash-attention](https://github.com/HazyResearch/flash-attention) paper in
+Julia/C++. The paper describes a method for implementing the following
+operation (dot-product attention), common in transformer neural networks,
+
+$$\mathrm{softmax}(QK^T)V$$
+
+for $Q , K, V \in R^{N\times d}$, where $\mathrm{softmax}$ is the row-wise 
+normalization,
+
+$$\mathrm{sm}\left(X\right)_{ij}\ =\frac{\exp\left(X_{ij}\ \right)}{\sum_{_{j=1}}^N\exp\left(X_{ij}\right)}$$
+
+The catch is to implement the above operation without every forming the matrix $QK^T$, and can be 
+done with matrix tiling and keeping track of some statistics. Furthermore, there are varients 
+on this operation where we impose a sparsity pattern on the matrix $QK^T$.
+
+The goal is to implement a few different varients of flash-attention (fa):
+- dense fa
+- block-sparse fa (1D, 2D)
+- sliding-window sparse fa (1D, 2D)
+
+Julia also makes it (relatively) easy to write CUDA kernels for running your
+code on NVIDIA GPUs. 
+
+Lakshay and I will try and write 
+these different flash-attention functions in parallel -- I'll write Julia and Lakshay C++. 
+We can then compare implementations for correctness and benchmark them against each other 
+and the naive version of dot-product attention. 
+
