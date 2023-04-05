@@ -55,6 +55,104 @@ Let `T0` and `T1` refer to the first and second thread, respectively.
   Both threads will finish simultaneously in $t_0 + t_1 = n(n-1)/2$ ms.
 
 ## 2. Parallel Scan in OpenMP
+In this problem, we implement the `scan` function, a.k.a. a cumulative sum function (see `scan-omp.cpp`).
+I rewrote the serial code to be a bit more clear to myself (it also only uses 2 reads+write per iter instead of 3):
+
+```c
+void cumsum(long *result, long *input, long length) 
+{
+    long sum = 0;
+    for (long i = 0; i < length; i++) 
+    {
+        sum += input[i];
+        result[i] = sum;
+    }
+}
+```
+
+To multi-thread this function over `max_threads` threads, we can split the array into 
+`max_threads` contiguous chunks and over each chunk perform a `cumsum`. After, 
+we want to correct the results of each chunk by the last value in each chunk that came 
+before it. This is implemented in the following function, `cumsum_omp`:
+
+```c
+void cumsum_omp(long *result, const long *input, long length) 
+{
+    long max_threads = omp_get_max_threads();
+    long *local_sums = (long*) malloc(max_threads * sizeof(long));
+    long chunk_size = length / max_threads;
+
+    #pragma omp parallel
+    {
+        long thread_num = omp_get_thread_num();
+        long sum = 0;
+
+        long start_index = thread_num * chunk_size;
+        long end_index = (thread_num == max_threads - 1) ? length : (start_index + chunk_size);
+
+        for (long i = start_index; i < end_index; i++) 
+        {
+            sum += input[i];
+            result[i] = sum;
+        }
+
+        local_sums[thread_num] = sum;
+    }
+
+    for (long i = 1; i < max_threads; i++) 
+    {
+        local_sums[i] += local_sums[i-1];
+    }
+
+    #pragma omp parallel
+    {
+        long thread_num = omp_get_thread_num();
+
+        long start_index = thread_num * chunk_size;
+        long end_index = (thread_num == max_threads - 1) ? length : (start_index + chunk_size);
+
+        if (thread_num > 0) 
+        {
+            long correction = local_sums[thread_num - 1];
+            for (long i = start_index; i < end_index; i++) 
+            {
+                result[i] += correction;
+            }
+        }
+    }
+
+    free(local_sums);
+}
+```
+
+Note that we use two `parallel` regions, as in between we want the threads to
+sync/stop so that we can perform a cumsum over `local_sums` to obtain the
+proper correction factors. Out of curiousity, a second multi-threaded cumsum,
+`cumsum_omp2`, is given the the program that uses a single `parallel` 
+region. This is done by using the `barrier` and `single` pragma directives.
+
+Below we show the timing results for `cumsum` vs. `cumsum_omp` for different
+number of threads and compilaiton optimiation levels (O0, O1, O2, O3). The
+program was run on a 4-core, 8-thread intel machine (see hw2 for details).
+
+| Data        | serial| t=1   | t=2   | t=3   | t=4   | t=5   | t=6   | t=7   | t=8   |
+|-------------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+| O0-time (s) | 0.059 | 0.023 | 0.026 | 0.018 | 0.017 | 0.016 | 0.016 | 0.015 | 0.031 |
+| O1-time (s) | 0.040 | 0.009 | 0.013 | 0.013 | 0.014 | 0.014 | 0.014 | 0.014 | 0.015 |
+| O2-time (s) | 0.040 | 0.010 | 0.013 | 0.013 | 0.014 | 0.014 | 0.014 | 0.014 | 0.014 |
+| O3-time (s) | 0.040 | 0.009 | 0.012 | 0.013 | 0.013 | 0.014 | 0.014 | 0.014 | 0.014 |
+
+We see that without compilation optimization, increasing the number of threads
+imporves the speed of the program (except at `threads=8`). However, once we
+turn on compilation optimization, multithreading seems to no longer have a
+positive effect. What's also interesting is that at no point is `threads=1`
+timing equal to the serial timing. I have found no explanation for this
+phenomenon.
+
+For reference, the above table is achieved by the bash script,
+```bash
+for i={1..8}; OMP_NUM_THREADS=$i ./scan-omp; done
+```
 
 ## 3. OpenMP version of 2D Jacobi/Gauss-Seidel smoothing
 
