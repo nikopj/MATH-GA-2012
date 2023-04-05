@@ -168,7 +168,7 @@ $$\mathrm{softmax}(QK^T)V$$
 for $Q , K, V \in R^{N\times d}$, where $\mathrm{softmax}$ is the row-wise 
 normalization,
 
-$$\mathrm{sm}\left(X\right)_{ij}\ =\frac{\exp\left(X_{ij}\ \right)}{\sum_{_{j=1}}^N\exp\left(X_{ij}\right)}$$
+$$\mathrm{softmax}\left(X\right)_{ij}\ =\frac{\exp\left(X_{ij}\ \right)}{ \sum_{j=1}^{N} \exp\left(X_{ij}\right) }$$
 
 The catch is to implement the above operation without every forming the matrix $QK^T$, and can be 
 done with matrix tiling and keeping track of some statistics. Furthermore, there are varients 
