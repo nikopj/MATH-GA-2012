@@ -18,7 +18,7 @@ of `f(i)` takes `i` milliseconds.
 }
 ```
 
-Lets futher assume `n-1` is divisible by two, for simplicity.
+Lets father assume `n-1` is divisible by two, for simplicity.
 Let `T0` and `T1` refer to the first and second thread, respectively. 
 
 - (a) The static scheduler will divide the for loop into two continuous chunks,
@@ -34,7 +34,7 @@ Let `T0` and `T1` refer to the first and second thread, respectively.
   positions: `T1` takes $t_0$ ms and then waits $\Delta t$ ms for `T0` to
   finish. In  total, the parallel block takes $2t_1$ ms, of which 
   $2\Delta t= (n+3)(n-1)/2$ ms is spent waiting. In the limit of large $n$, the program
-  spends two-thirds of its time wating.
+  spends two-thirds of its time waiting.
 
 - (b) `schedule(static, 1)` tells openmp to split the for loops between threads
   in an alternating fashion. The result is a change in our formulas for $t_0$
@@ -130,12 +130,12 @@ void cumsum_omp(long *result, const long *input, long length)
 
 Note that we use two `parallel` regions, as in between we want the threads to
 sync/stop so that we can perform a cumsum over `local_sums` to obtain the
-proper correction factors. Out of curiousity, a second multi-threaded cumsum,
-`cumsum_omp2`, is given the the program that uses a single `parallel` 
+proper correction factors. Out of curiosity, a second multi-threaded cumsum,
+`cumsum_omp2`, is given the program that uses a single `parallel` 
 region. This is done by using the `barrier` and `single` pragma directives.
 
 Below we show the timing results for `cumsum` vs. `cumsum_omp` for different
-number of threads and compilaiton optimiation levels (O0, O1, O2, O3). The
+number of threads and compilation optimisation levels (O0, O1, O2, O3). The
 program was run on a 4-core, 8-thread intel machine (see hw2 for details).
 
 | Data        | serial| t=1   | t=2   | t=3   | t=4   | t=5   | t=6   | t=7   | t=8   |
@@ -146,7 +146,7 @@ program was run on a 4-core, 8-thread intel machine (see hw2 for details).
 | O3-time (s) | 0.040 | 0.009 | 0.012 | 0.013 | 0.013 | 0.014 | 0.014 | 0.014 | 0.014 |
 
 We see that without compilation optimization, increasing the number of threads
-imporves the speed of the program (except at `threads=8`). However, once we
+improves the speed of the program (except at `threads=8`). However, once we
 turn on compilation optimization, multithreading seems to no longer have a
 positive effect. What's also interesting is that at no point is `threads=1`
 timing equal to the serial timing. I have found no explanation for this
@@ -155,7 +155,19 @@ phenomenon.
 For reference, the above table is achieved by the script `hw3/scan_tablemake.sh`,
 
 ## 3. OpenMP version of 2D Jacobi/Gauss-Seidel smoothing
-in progress...
+Jacobi and Gauss-Seidel (with Red-Black coloring) solvers for the 2D Laplace equation
+were implemented in `jacobi2D-omp.cpp` and `gs2D-omp.cpp`, respectively. Each solver 
+parallelizes over the linear indices of the 2D grid using openmp. For each point, the 2D grid is of 
+size $N \times N$. The timing results of each 
+solver are shown in the figures below.
+
+![Jacobi 2D](plot/page0.png)
+![GS Red-Black 2D](plot/page1.png)
+
+Note that we only show points on each plot for which the solver converged under 5,000 iterations. 
+We see that in both cases, increasing the number of threads increases the solvers speed. We also see that
+the Gauss-Seidel solver is both faster and able to converge for problems of larger dimension.
+
 
 ## 4. Preview for final project summary on next assignment
 I am working with Lakshay Garg to implement the
@@ -174,7 +186,7 @@ The catch is to implement the above operation without every forming the matrix $
 done with matrix tiling and keeping track of some statistics. Furthermore, there are varients 
 on this operation where we impose a sparsity pattern on the matrix $QK^T$.
 
-The goal is to implement a few different varients of flash-attention (fa):
+The goal is to implement a few different variants of flash-attention (fa):
 - dense fa
 - block-sparse fa (1D, 2D)
 - sliding-window sparse fa (1D, 2D)
